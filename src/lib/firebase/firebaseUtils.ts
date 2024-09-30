@@ -1,9 +1,5 @@
 import { auth, db, storage } from "./firebase";
-import {
-  signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
+import { signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import {
   collection,
   addDoc,
@@ -11,6 +7,8 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  query,
+  orderBy,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -32,13 +30,12 @@ export const signInWithGoogle = async () => {
 export const addDocument = (collectionName: string, data: any) =>
   addDoc(collection(db, collectionName), data);
 
-export const getDocuments = async (collectionName: string) => {
-  const querySnapshot = await getDocs(collection(db, collectionName));
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-};
+export async function getDocuments(collectionName: string) {
+  const colRef = collection(db, collectionName);
+  const q = query(colRef, orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+}
 
 export const updateDocument = (collectionName: string, id: string, data: any) =>
   updateDoc(doc(db, collectionName, id), data);
